@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Patch the official Volca Beats firmware locally, then play or download BEATROOTS.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>BEATROOTS · Firmware patcher</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23171819'/%3E%3Cpath d='M8 8h10v7H8zm0 9h13v7H8z' fill='%23e8fd70'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script defer src="release.js"></script><script defer src="patcher.js"></script><script defer src="app.js"></script>
+</head>
+<body><main>
+<header><span class="brand">BEATROOTS<span class="square" aria-hidden="true"></span></span><span class="edition">VOLCA BEATS</span></header>
+<section class="intro"><p class="eyebrow">BROWSER FIRMWARE PATCHER</p><h1>New roots.<br>Same Beats.</h1><p>Choose Korg’s original update. Patch it here, then send it to your Volca.</p><p class="privacy">Your firmware stays in this browser. No upload, account or installation.</p></section>
+<section class="panel" aria-labelledby="choose-title"><div class="section-head"><span class="number">01</span><h2 id="choose-title">Choose the original firmware</h2></div>
+<p>Use the unmodified <strong>volcabeats_sys_0104.wav</strong> from <a href="https://www.korg.com/us/support/download/software/0/141/1474/" target="_blank" rel="noopener noreferrer">Korg’s System Updater 1.04</a>. Unzip the download first.</p>
+<label class="file-label" for="firmware">Official update WAV</label><input type="file" id="firmware" accept=".wav,audio/wav"><button id="patch" disabled>Patch firmware</button>
+<p id="status" role="status" aria-live="polite">Waiting for the official WAV.</p>
+</section>
+<section class="panel" id="result" hidden aria-labelledby="ready-title"><div class="section-head"><span class="number">02</span><h2 id="ready-title">Verified. Ready to transfer.</h2></div>
+<p>The generated WAV matches the verified release exactly. Keep the original Korg WAV for restoring stock firmware.</p>
+<div class="instructions"><h3>Before you press play</h3><ol><li>Connect your audio output to the Volca’s <strong>SYNC IN</strong> with a stereo cable. These are data tones: do not play through speakers or headphones.</li><li>Connect the Volca to an external power supply or use fresh batteries. (The Volca blocks updates if the batteries are low.) With the Volca off, hold <strong>MEMORY + PLAY</strong> while powering on. Check that <strong>UPdt.</strong> stays on.</li><li>Disable EQ, audio enhancements and notifications. Use an output level that successfully transfers the official update. Keep this page open and your device awake.</li><li>Play once from the beginning. Do not interrupt playback or power. Wait for <strong>End</strong> on the Volca, then power-cycle.</li></ol></div>
+<label class="confirm"><input id="connected" type="checkbox"> My audio output is connected to the Volca’s SYNC IN, and it is ready in update mode.</label>
+<audio id="audio" preload="metadata"></audio>
+<div class="transport"><button id="play" disabled>Play firmware from beginning</button><button id="stop" class="secondary" disabled>Stop</button></div>
+<progress id="progress" max="1" value="0" aria-label="Firmware playback progress"></progress><p id="time" class="time">0:00 / —</p><p id="play-status" role="status" aria-live="polite">Playback starts only when you press play.</p>
+<a class="download" id="download">Download patched WAV instead ↓</a>
+</section>
+<!-- README:START -->
+<section id="guide" class="guide" aria-labelledby="guide-title">
+<p class="eyebrow">DOCUMENTATION</p><h2 id="guide-title">About the firmware</h2>
+<nav class="guide-nav" aria-label="Guide sections"><a href="#guide-what-the-controls-do">What the controls do</a>
+<a href="#guide-requirements">Requirements</a>
+<a href="#guide-how-it-works">How it works</a>
+<a href="#guide-expected-sha-256-values">Expected SHA-256 values</a>
+<a href="#guide-references-and-acknowledgements">References and acknowledgements</a></nav>
+<article class="readme"><p>This custom firmware turns the four PCM parts of a <strong>Korg Volca Beats</strong> into four new digital synthesised parts: a noise grain, a Delta Clamp glitch voice, a pitched code loop, and a sine bass.</p>
+<p>This is unofficial, experimental firmware. Connect your Volca to an external
+power supply or use fresh batteries, and read the installation instructions
+before transferring the update. (The Volca blocks updates if the batteries are low.)</p>
+<h3 id="guide-what-the-controls-do">What the controls do</h3>
+<p>Select the part, turn <strong>PCM SPEED</strong>, then trigger another hit. Settings are
+latched when a hit begins; turning the knob does not reshape an ongoing hit.
+Motion sequencing supplies the same control to subsequent triggers.</p>
+<div class="guide-table" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>New sound</th>
+<th>PCM SPEED control</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Clap</td>
+<td>Noise grain</td>
+<td>Duration, from a micro-hit to approximately one sixteenth note at the current tempo</td>
+</tr>
+<tr>
+<td>Claves</td>
+<td>Delta Clamp loop with a fast, wide pitch bend</td>
+<td>Rising base pitch across three octaves; downward bends at the low end, nearly steady in the middle, upward bends at the high end</td>
+</tr>
+<tr>
+<td>Agogo</td>
+<td>Short, tonal code loop</td>
+<td>Playback pitch, approximately 15.6–525 Hz</td>
+</tr>
+<tr>
+<td>Crash</td>
+<td>Interpolated sine bass with a falling pitch envelope</td>
+<td>Bass pitch, approximately 23.3–89.2 Hz</td>
+</tr>
+</tbody></table></div>
+<p>For Crash, <strong>PART LEVEL</strong> controls the volume. Beyond a certain point, increasing
+it drives the sound into clipping, creating distortion.</p>
+<h4 id="guide-chromatic-midi-bass">Chromatic MIDI bass</h4>
+<p>Crash plays notes chromatically on <strong>MIDI channel 11</strong>.</p>
+<h3 id="guide-requirements">Requirements</h3>
+<ul>
+<li>A <strong>Volca Beats</strong>.</li>
+<li>The unmodified official <a href="https://www.korg.com/us/support/download/software/0/141/1474/"><strong>Volca Beats system updater 1.04</strong></a> WAV.</li>
+<li>To install: a stereo audio cable, an audio player, and an external power supply or fresh batteries.</li>
+</ul>
+<p>The patcher only accepts one exact input file. It does not patch arbitrary
+firmware versions, recordings, converted WAVs or an already-patched update.</p>
+<h3 id="guide-how-it-works">How it works</h3>
+<p>The patch changes the four PCM voices without replacing the factory samples.
+Clap, Claves and Agogo turn program data into noise and loops; Crash uses the
+original sine table. Analogue drum controls remain available.</p>
+<p>The patcher checks the original firmware, applies the changes, then verifies
+the finished WAV against the expected release. These checks confirm the file’s
+integrity, not compatibility with every device.</p>
+<h3 id="guide-expected-sha-256-values">Expected SHA-256 values</h3>
+<div class="guide-table" tabindex="0" role="region" aria-label="Reference table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Official <code>volcabeats_sys_0104.wav</code></td>
+<td><code>20b965026f95ca8781254489bd5e9de1c41385862c8ffd58bed3bedb9b716e44</code></td>
+</tr>
+<tr>
+<td>Generated <code>INSTALL_BEATROOTS_V10C.wav</code></td>
+<td><code>0c633b7c3135bb09125b190377b8d1d90756e5099f58ac1a6fda4c9b03fdfd1d</code></td>
+</tr>
+</tbody></table></div>
+<p>These checks run automatically before playback or download is available.</p>
+<h3 id="guide-references-and-acknowledgements">References and acknowledgements</h3>
+<ul>
+<li><strong>Korg</strong> — the instrument and original firmware. <a href="https://www.korg.com/us/support/download/software/0/141/1474/">Official updater</a>, <a href="https://www.korg.com/us/support/download/product/0/141/">Volca Beats support</a> and <a href="https://github.com/korginc/volcasample">SYRO reference</a>.</li>
+<li><strong>Pajen</strong> — pioneering Volca firmware work. <a href="https://www.reddit.com/r/volcas/comments/bb6oud/volca_beats_gene_frenkle_edition/">Gene Frenkle Edition</a>, <a href="https://www.reddit.com/r/volcas/comments/fzthpo/pajens_korg_volca_unofficial_firmware_information/">firmware discussion</a> and <a href="https://github.com/pajen/volcafmpatchdecoder">FM decoder</a>.</li>
+<li><strong>Emil / Uglyduck</strong> — <a href="https://uglyduck.vajn.icu/Korg_Volca_FM/fw/fw/">firmware archive</a> and <a href="https://uglyduck.vajn.icu/Korg_Volca_FM/fw/fw/src/">source references</a>.</li>
+<li><strong>Development tools</strong> — <a href="https://llvm.org/">LLVM/Clang</a>, <a href="https://www.unicorn-engine.org/">Unicorn</a> and <a href="https://www.capstone-engine.org/">Capstone</a>.</li>
+<li><strong>The Volca community</strong> — experiments, device testing and listening feedback.</li>
+</ul>
+<p>This project is independent of Korg. Credits acknowledge references and inspiration,
+not endorsement. Users obtain the original firmware directly from Korg.</p>
+</article>
+<p><a href="#choose-title">Back to the patcher ↑</a></p>
+</section>
+<!-- README:END -->
+<footer><strong>Experimental firmware · Volca Beats only.</strong><p>Software verification does not guarantee a successful hardware update or recovery. Read the <a href="#guide">full installation notes</a> before installing. This project is independent of Korg.</p></footer>
+<noscript>This patcher needs JavaScript enabled. Your firmware is processed locally.</noscript>
+</main></body></html>

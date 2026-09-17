@@ -1,0 +1,9 @@
+# Keep vendor downloads and locally generated firmware out of this repository.
+*.wav
+*.WAV
+*.bin
+*.zip
+*.pdf
+__pycache__/
+*.py[cod]
+.DS_Store
